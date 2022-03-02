@@ -1,8 +1,9 @@
 import { SceneGameArena } from "./SceneGameArena";
+import { BOARD_SIZE } from "common/shared";
 
 export class ControlsUI {
     constructor(scene: SceneGameArena, keys: Array<string>) {
-        let y = 600;
+        let y = 615;
         let index = 0;
         const controlInfo = [
             "Move Left",
@@ -12,11 +13,15 @@ export class ControlsUI {
             "Rotate CW",
         ];
 
+        scene.add
+            .image(BOARD_SIZE * 3, BOARD_SIZE * 17, "controlFrame")
+            .setScale(1.1);
+
         for (const key of keys) {
-            scene.add.image(50, y, key).setScale(0.2);
+            scene.add.image(70, y, key).setScale(0.2);
 
             scene.add
-                .text(70, y - 10, controlInfo[index++], {
+                .text(90, y - 10, controlInfo[index++], {
                     fontSize: `20px`,
                     fontFamily: "VT323",
                 })

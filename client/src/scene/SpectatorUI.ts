@@ -16,7 +16,7 @@ export class SpectatorUI {
     private alreadyVoted: Phaser.GameObjects.Text;
     private countdownConfig: TextConfig;
     private buttonConfig: TextConfig;
-
+    private frameImage!: Phaser.GameObjects.Image | null;
     private socket: SocketSpectator;
 
     constructor(scene: SceneGameArena, socket: SocketSpectator) {
@@ -36,30 +36,32 @@ export class SpectatorUI {
 
         this.buttons = [];
 
+        this.frameImage = null;
+
         // Creating a blank text object(s).
-        const y: number = BOARD_SIZE * 14;
+        const y: number = BOARD_SIZE * 15;
         this.countdown = this.scene.add
-            .text(14 * BOARD_SIZE, y, "", this.countdownConfig)
+            .text(14.9 * BOARD_SIZE, y + 10, "", this.countdownConfig)
             .setTint(0x53bb74);
 
         this.alreadyVoted = this.scene.add
-            .text(14 * BOARD_SIZE + 20, y + 90, "", this.buttonConfig)
+            .text(14 * BOARD_SIZE + 40, y + 90, "", this.buttonConfig)
             .setTint(0xe6e4da);
 
         this.buttons[0] = this.scene.add
-            .text(14 * BOARD_SIZE + 20, y + 60, "", this.buttonConfig)
+            .text(14 * BOARD_SIZE + 10, y + 60, "", this.buttonConfig)
             .setTint(0xe6e4da);
 
         this.buttons[1] = this.scene.add
-            .text(14 * BOARD_SIZE + 20, y + 90, "", this.buttonConfig)
+            .text(14 * BOARD_SIZE + 10, y + 90, "", this.buttonConfig)
             .setTint(0xe6e4da);
 
         this.buttons[2] = this.scene.add
-            .text(14 * BOARD_SIZE + 20, y + 120, "", this.buttonConfig)
+            .text(14 * BOARD_SIZE + 10, y + 120, "", this.buttonConfig)
             .setTint(0xe6e4da);
 
         this.buttons[3] = this.scene.add
-            .text(14 * BOARD_SIZE + 20, y + 150, "", this.buttonConfig)
+            .text(14 * BOARD_SIZE + 10, y + 150, "", this.buttonConfig)
             .setTint(0xe6e4da);
 
         // Request info on any on-going voting sequences.
@@ -92,6 +94,11 @@ export class SpectatorUI {
      */
     private generateTimedEvent(valFromServer: string) {
         this.removeTimedEvent();
+
+        this.frameImage = this.scene.add
+            .image(BOARD_SIZE * 16.5, BOARD_SIZE * 17, "spectatorFrame")
+            .setScale(1.1);
+
         this.createOptions(valFromServer);
     }
 
@@ -105,6 +112,11 @@ export class SpectatorUI {
         this.cookieTracker.deleteCookie("hasVoted");
 
         this.hideOptions();
+
+        if (this.frameImage) {
+            this.frameImage.destroy();
+            this.frameImage = null;
+        }
     }
 
     /**
@@ -112,15 +124,13 @@ export class SpectatorUI {
      * @param votingOption This value is received from the server. Based off the value obtained, display a different set of buttons.
      */
     private createOptions(votingOption: string) {
-        this.countdown
-            .setText("Vote on what happens!\n  Time left: 10")
-            .setTint(0x53bb74);
+        this.countdown.setText("Time left: 10").setTint(0x53bb74);
 
         this.socket.emit("requestVotingCountdown");
 
         // Only show options if the user has not already voted.
         if (this.cookieTracker.getCookie("hasVoted")) {
-            this.alreadyVoted.setText("  Your vote has\n    been sent!");
+            this.alreadyVoted.setText("Your vote has\n  been sent!");
             return;
         }
 
@@ -139,7 +149,7 @@ export class SpectatorUI {
                 );
                 this.setVotingButton(
                     this.buttons[2],
-                    "> Randomize Their Blocks",
+                    "> Randomize Blocks",
                     "option3"
                 );
                 this.setVotingButton(
@@ -152,12 +162,12 @@ export class SpectatorUI {
                 // Second voting step. Generate Fall rate options.
                 this.setVotingButton(
                     this.buttons[0],
-                    "> Increase Fall Rate",
+                    "> Higher Fall Rate",
                     "option1"
                 );
                 this.setVotingButton(
                     this.buttons[1],
-                    "> Decrease Fall Rate",
+                    "> Lower Fall Rate",
                     "option2"
                 );
                 break;
@@ -194,7 +204,7 @@ export class SpectatorUI {
                 this.hideOptions();
                 this.socket.emit("vote", valForServer);
                 this.cookieTracker.setCookie("hasVoted", "true");
-                this.alreadyVoted.setText("  Your vote has\n    been sent!");
+                this.alreadyVoted.setText("Your vote has\n  been sent!");
             });
     }
 
@@ -226,9 +236,7 @@ export class SpectatorUI {
      * @returns Whether to stop the 1second interval that the countdown runs on.
      */
     private updateCountdown(secondsLeft: number) {
-        this.countdown.setText(
-            `Vote on what happens!\n Time left: ${secondsLeft}`
-        );
+        this.countdown.setText(`Time left: ${secondsLeft}`);
 
         if (secondsLeft < 0) {
             this.removeTimedEvent();
