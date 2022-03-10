@@ -8,6 +8,7 @@ import { Tetromino } from "../Tetromino";
 import { ScoreboardUI } from "../scene/ScoreboardUI";
 import { SpectatorUI } from "../scene/SpectatorUI";
 import { WebFontFile } from "../plugins/WebFontFile";
+import { gameState, socket } from "../sharedStates";
 
 import { Socket } from "socket.io-client";
 
@@ -58,12 +59,11 @@ export class SceneGameArena extends Phaser.Scene {
         this.load.svg("keyQ", KEY_Q);
     }
 
-    init(data: SceneDataGameArena) {
-        this.gameState = data.gameState;
-        this.socket = this.gameState.socket;
-    }
-
     create() {
+        // import shared states
+        this.gameState = gameState;
+        this.socket = socket;
+
         this.scoreboard = new ScoreboardUI(this, this.socket, true);
         this.spectator = new SpectatorUI(this, this.socket);
         // NOTE: need to make sure playerId is valid when this scene is started
@@ -117,7 +117,6 @@ export class SceneGameArena extends Phaser.Scene {
 
         this.socket.on("toSceneGameOver", (playerPoints) => {
             this.scene.start("SceneGameOver", {
-                gameState: this.gameState,
                 playerPoints: playerPoints,
             });
         });

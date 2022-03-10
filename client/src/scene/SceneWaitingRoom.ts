@@ -10,12 +10,9 @@ import { WebFontFile } from "../plugins/WebFontFile";
 import { GameState } from "../GameState";
 
 import TitleScreen from "../assets/TitleScreen.svg";
+import { socket } from "../sharedStates";
 
 type SocketWaitingRoom = Socket<ToClientEvents, ToServerEvents>;
-
-interface SceneDataWaitingRoom {
-    gameState: GameState;
-}
 
 export class SceneWaitingRoom extends Phaser.Scene {
     private playersNeededText!: Phaser.GameObjects.Text;
@@ -28,11 +25,6 @@ export class SceneWaitingRoom extends Phaser.Scene {
         super("SceneWaitingRoom");
     }
 
-    init(data: SceneDataWaitingRoom) {
-        this.gameState = data.gameState;
-        this.socket = this.gameState.socket;
-    }
-
     preload() {
         this.load.addFile(new WebFontFile(this.load, "VT323"));
 
@@ -40,6 +32,7 @@ export class SceneWaitingRoom extends Phaser.Scene {
     }
 
     create() {
+        this.socket = socket;
         this.initListeners();
         this.socket.emit("requestCurrentScene");
     }
@@ -118,12 +111,11 @@ export class SceneWaitingRoom extends Phaser.Scene {
         });
 
         this.socket.on("toSceneGameArena", () => {
-            this.scene.start("SceneGameArena", { gameState: this.gameState });
+            this.scene.start("SceneGameArena");
         });
 
         this.socket.on("toSceneGameOver", (playerPoints) => {
             this.scene.start("SceneGameOver", {
-                gameState: this.gameState,
                 playerPoints,
             });
         });

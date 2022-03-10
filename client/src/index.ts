@@ -1,10 +1,8 @@
 import Phaser from "phaser";
-import { io } from "socket.io-client";
 
 import { SceneWaitingRoom } from "./scene/SceneWaitingRoom";
 import { SceneGameArena } from "./scene/SceneGameArena";
 import { SceneGameOver } from "./scene/SceneGameOver";
-import { GameState } from "./GameState";
 import { BOARD_SIZE, TILE_SIZE } from "common/shared";
 
 const config = {
@@ -21,16 +19,10 @@ const config = {
         : [SceneWaitingRoom, SceneGameArena, SceneGameOver],
 };
 
-const socket = io(
-    (import.meta.env.PROD && window.location.origin) ||
-        import.meta.env.VITE_BACKEND_URL ||
-        "http://localhost:3001/"
-);
-const gameState = new GameState(socket);
 const game = new Phaser.Game(config);
 
 if (import.meta.env.VITE_DISABLE_WAITING_ROOM) {
-    game.scene.start("SceneGameArena", { gameState, socket });
+    game.scene.start("SceneGameArena");
 } else {
-    game.scene.start("SceneWaitingRoom", { gameState, socket });
+    game.scene.start("SceneWaitingRoom");
 }

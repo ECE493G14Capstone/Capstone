@@ -5,11 +5,11 @@ import { ScoreboardUI } from "./ScoreboardUI";
 
 import { ToClientEvents, ToServerEvents } from "common/messages/sceneGameOver";
 import { ColoredScore } from "common/shared";
+import { resetSharedStates } from "../sharedStates";
 
 type SocketGameOver = Socket<ToClientEvents, ToServerEvents>;
 
 interface SceneDataGameOver {
-    gameState: GameState;
     playerPoints: Array<ColoredScore>;
 }
 
@@ -24,9 +24,7 @@ export class SceneGameOver extends Phaser.Scene {
     }
 
     init(data: SceneDataGameOver) {
-        this.gameState = data.gameState;
         this.playerData = data.playerPoints;
-        this.socket = this.gameState.socket;
     }
 
     create() {
@@ -38,7 +36,8 @@ export class SceneGameOver extends Phaser.Scene {
         this.socket.removeListener("toSceneWaitingRoom");
 
         this.socket.on("toSceneWaitingRoom", () => {
-            this.scene.start("SceneWaitingRoom", { gameState: this.gameState });
+            resetSharedStates();
+            this.scene.start("SceneWaitingRoom");
         });
     }
 }
