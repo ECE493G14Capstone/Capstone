@@ -1,4 +1,5 @@
 import { Level } from "./Level";
+import { TetrominoType } from "common/TetrominoType";
 import {
     broadcastHideVotingSequence,
     broadcastShowVotingSequence,
@@ -22,11 +23,13 @@ export class Spectator {
     };
     private _countdownValue: number;
     private _secondVotingRoundSelection: string;
+    private _randTetros: Array<string>;
 
     constructor() {
         this._isFirstRoundVoting = true;
         this._isAcceptingVotes = false;
         this._isVoteRunning = false;
+        this._randTetros = [];
         this._previouslyVotedOption = "null";
         this._votingMap = {
             noAction: 0,
@@ -42,6 +45,10 @@ export class Spectator {
         return this._countdownValue;
     }
 
+    get randTetros(): Array<string> {
+        return this._randTetros;
+    }
+
     initSocketListeners(socket: SocketSpectator) {
         socket.on("vote", (votingResult: string) => {
             this.getResult(votingResult);
@@ -50,7 +57,11 @@ export class Spectator {
         socket.on("requestVotingSequence", () => {
             const currentSequence = this.isVoteRunning();
             if (currentSequence) {
-                socket.emit("showVotingSequence", currentSequence);
+                socket.emit(
+                    "showVotingSequence",
+                    currentSequence,
+                    this._randTetros
+                );
             }
         });
 
@@ -210,20 +221,20 @@ export class Spectator {
                     this.generateSecondVotingSequence("fallRate", level);
                 } else if (this._previouslyVotedOption == "option1") {
                     level.spectatorIncreaseFallRate();
-                    console.log("Incrementing level (fall rate)"); // FIXME: remove later.
                 } else if (this._previouslyVotedOption == "option2") {
-                    console.log("Spawning in tetromino option 1..."); // FIXME: Need to spawn in a tetromino for the players for 20 seconds.
+                    // let type = Object.keys(Object.keys(TetrominoType).indexOf(this._randTetros[0]));
+                    console.log("Spawning in tetromino"); // FIXME: Need to spawn in a tetromino for the players for 20 seconds.
                 }
                 break;
             case "option2":
                 if (this._isFirstRoundVoting) {
+                    this.generateRandTetros(TetrominoType);
                     this.generateSecondVotingSequence(
                         "tetrominoSelection",
                         level
                     );
                 } else if (this._previouslyVotedOption == "option1") {
                     level.spectatorDecreaseFallRate();
-                    console.log("Decrementing level (fall rate)"); // FIXME: remove later.
                 } else if (this._previouslyVotedOption == "option2") {
                     console.log("Spawning in tetromino option 2 ..."); // FIXME: Spawn in tetrominos for players for 20 seconds.
                 }
@@ -235,6 +246,21 @@ export class Spectator {
                     console.log("Spawning in tetromino option 3..."); // FIXME: Spawn in tetrominos for players for 20 seconds.
                 }
                 break;
+        }
+    }
+
+    private generateRandTetros(tetroTypes: typeof TetrominoType) {
+        let enumValues = Object.keys(tetroTypes).filter((item) => {
+            return isNaN(Number(item));
+        });
+
+        this._randTetros = [];
+
+        while (this._randTetros.length != 3) {
+            const randomKey =
+                enumValues[Math.floor(Math.random() * enumValues.length)];
+            this._randTetros.push(randomKey);
+            enumValues = enumValues.filter((e) => e !== randomKey);
         }
     }
 }

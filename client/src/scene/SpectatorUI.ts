@@ -75,10 +75,10 @@ export class SpectatorUI {
         this.socket.removeListener("hideVotingSequence");
         this.socket.removeListener("sendVotingCountdown");
 
-        this.socket.on("showVotingSequence", (votingSequence) => {
+        this.socket.on("showVotingSequence", (votingSequence, randTetros) => {
             // Only display the voting sequence for spectators.
             if (this.scene.gameState.playerId == null) {
-                this.generateTimedEvent(votingSequence);
+                this.generateTimedEvent(votingSequence, randTetros);
             }
         });
 
@@ -95,9 +95,12 @@ export class SpectatorUI {
      * Generate the spectator voting section.
      * @param valFromServer Specifies which buttons to be loading in for this sequence.
      */
-    private generateTimedEvent(valFromServer: string) {
+    private generateTimedEvent(
+        valFromServer: string,
+        randTetros: Array<string>
+    ) {
         this.removeTimedEvent();
-        this.createOptions(valFromServer);
+        this.createOptions(valFromServer, randTetros);
     }
 
     /**
@@ -116,7 +119,7 @@ export class SpectatorUI {
      * Generate options for the user to select.
      * @param votingOption This value is received from the server. Based off the value obtained, display a different set of buttons.
      */
-    private createOptions(votingOption: string) {
+    private createOptions(votingOption: string, randTetros: Array<string>) {
         this.countdown
             .setText("Vote on what happens!\n  Time left: 10")
             .setTint(0x53bb74);
@@ -168,9 +171,21 @@ export class SpectatorUI {
                 break;
             case "tetrominoSelection":
                 // Second voting step. Generate next block options.
-                this.setVotingButton(this.buttons[0], "> FIXME", "option1");
-                this.setVotingButton(this.buttons[1], "> FIXME", "option2");
-                this.setVotingButton(this.buttons[2], "> FIXME", "option3");
+                this.setVotingButton(
+                    this.buttons[0],
+                    `> Spawn ${randTetros[0]}-blocks`,
+                    "option1"
+                );
+                this.setVotingButton(
+                    this.buttons[1],
+                    `> Spawn ${randTetros[1]}-blocks`,
+                    "option2"
+                );
+                this.setVotingButton(
+                    this.buttons[2],
+                    `> Spawn ${randTetros[2]}-blocks`,
+                    "option3"
+                );
                 break;
         }
     }

@@ -87,7 +87,7 @@ export function broadcastToSceneGameOver(msg: Array<ColoredScore>) {
 }
 
 export function broadcastShowVotingSequence(votingSequence: string) {
-    io.sockets.emit("showVotingSequence", votingSequence);
+    io.sockets.emit("showVotingSequence", votingSequence, spectator.randTetros);
 }
 
 export function broadcastHideVotingSequence() {

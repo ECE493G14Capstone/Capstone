@@ -1,5 +1,8 @@
 export interface ToClientEvents {
-    showVotingSequence: (votingSequence: string) => void;
+    showVotingSequence: (
+        votingSequence: string,
+        randTetros: Array<string>
+    ) => void;
     hideVotingSequence: () => void;
     sendVotingCountdown: (secondsLeft: number) => void;
 }
