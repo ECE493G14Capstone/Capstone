@@ -43,6 +43,7 @@ export class GameState {
         this.socket = socket;
         this.board = this.newBoard();
         this.currentTetromino = new Tetromino();
+        this.currentTetromino.initListeners(socket);
         // other player's moving piece, TODO this is synchronized with the server
         // how they are rendered is not concerned.
         this.otherTetrominoes = [

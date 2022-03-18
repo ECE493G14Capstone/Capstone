@@ -9,4 +9,5 @@ export interface broadcast {
     hideVotingSequence(): void;
     remainingPlayers(playersNeeded: number): void;
     fallRate(fallRate: number): void;
+    votedTetroToSpawn(type: number): void;
 }

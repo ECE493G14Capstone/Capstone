@@ -2,6 +2,11 @@ import { TetrominoType } from "common/TetrominoType";
 import { BOARD_SIZE } from "common/shared";
 import { TetrominoState } from "common/message";
 import { RandomBag } from "./randomBag";
+import { ToServerEvents, ToClientEvents } from "common/messages/tetromino";
+
+import { Socket } from "socket.io-client";
+
+type TetrominoSocket = Socket<ToClientEvents, ToServerEvents>;
 
 type Shape = {
     width: number;
@@ -111,6 +116,8 @@ export class Tetromino {
     rotation: 0 | 1 | 2 | 3;
     tiles!: Array<[number, number]>;
     randomBag!: RandomBag;
+    votedTetroToSpawn!: number | null;
+
     constructor() {
         this.randomBag = new RandomBag();
         const type = this.randomBag.returnNextPiece();
@@ -122,6 +129,15 @@ export class Tetromino {
         this.rotation = 0; // default (no rotation)
     }
 
+    public initListeners(socket: TetrominoSocket) {
+        socket.on("votedTetroToSpawn", (type) => {
+            this.votedTetroToSpawn = type;
+            setTimeout(() => {
+                this.votedTetroToSpawn = null;
+            }, 20000);
+        });
+    }
+
     respawn() {
         // TODO generate from a sequence iterator (another singleton class?)
         // use respawn instead of `new Tetromino` because right now rendered tetromino will lose reference if inner is created anew. FIXME this is not true when using extension style rendered tetromino
@@ -129,7 +145,11 @@ export class Tetromino {
             0,
             Math.round((BOARD_SIZE - Tetromino.shapes[this.type].width) / 2),
         ];
-        this.setType(this.randomBag.returnNextPiece());
+        if (this.votedTetroToSpawn) {
+            this.setType(this.votedTetroToSpawn);
+        } else {
+            this.setType(this.randomBag.returnNextPiece());
+        }
         this.rotation = 0; // default (no rotation)
     }
 

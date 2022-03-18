@@ -16,6 +16,7 @@ export class SpectatorUI {
     private alreadyVoted: Phaser.GameObjects.Text;
     private countdownConfig: TextConfig;
     private buttonConfig: TextConfig;
+    private interval!: NodeJS.Timer;
 
     private socket: SocketSpectator;
 
@@ -109,6 +110,7 @@ export class SpectatorUI {
     private removeTimedEvent() {
         this.countdown.setText("");
         this.alreadyVoted.setText("");
+        clearInterval(this.interval);
 
         this.cookieTracker.deleteCookie("hasVoted");
 
@@ -273,9 +275,9 @@ export class SpectatorUI {
         this.updateCountdown(secondsLeft);
 
         // Start the countdown.
-        const interval = setInterval(() => {
+        this.interval = setInterval(() => {
             if (this.updateCountdown(secondsLeft)) {
-                clearInterval(interval);
+                clearInterval(this.interval);
             }
 
             secondsLeft--;

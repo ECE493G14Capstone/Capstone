@@ -88,6 +88,10 @@ const remainingPlayers: broadcast["remainingPlayers"] = (
 const fallRate: broadcast["fallRate"] = (fallRate: number) => {
     io.sockets.emit("updateFallRate", fallRate);
 };
+
+const votedTetroToSpawn: broadcast["votedTetroToSpawn"] = (type: number) => {
+    io.sockets.emit("votedTetroToSpawn", type);
+};
 // ==============================================
 
 console.log(`Server started at port ${port}`);
@@ -95,7 +99,11 @@ let playerCounter: 0 | 1 | 2 | 3 = 0; // FIXME: Remove this on final version.
 const scoreboard = new Scoreboard(updateScoreboard);
 const level = new Level(fallRate);
 const queue = new PlayerQueue(remainingPlayers, toSceneGameArena);
-const spectator = new Spectator(showVotingSequence, hideVotingSequence);
+const spectator = new Spectator(
+    showVotingSequence,
+    hideVotingSequence,
+    votedTetroToSpawn
+);
 const scene = new SceneTracker();
 
 /**

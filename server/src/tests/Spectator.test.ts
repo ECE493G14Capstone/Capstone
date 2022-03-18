@@ -9,7 +9,7 @@ describe("Testing 'Spectator'", () => {
     jest.spyOn(global, "setTimeout");
 
     beforeEach(() => {
-        spectator = new Spectator(jest.fn(), jest.fn());
+        spectator = new Spectator(jest.fn(), jest.fn(), jest.fn());
     });
 
     test("Test if Voting State is Maintained", () => {
@@ -27,7 +27,10 @@ describe("Testing 'Spectator'", () => {
         expect(spectator.countdownValue).toBe(-1);
 
         expect(setTimeout).toHaveBeenCalled();
-        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 10000);
+
+        // From the client's perspective, they still get a voting option for 10 seconds.
+        // The server makes a decision in 12 seconds to give a small buffer between voting rounds.
+        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 12000);
     });
 
     test("Test Second Voting Sequence", () => {
@@ -39,7 +42,10 @@ describe("Testing 'Spectator'", () => {
         expect(spectator.countdownValue).toBe(-1);
 
         expect(setTimeout).toHaveBeenCalled();
-        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 10000);
+
+        // From the client's perspective, they still get a voting option for 10 seconds.
+        // The server makes a decision in 12 seconds to give a small buffer between voting rounds.
+        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 12000);
     });
 
     test("Test Ensure Voting Sequence is Reset When Starting a Voting Sequence", () => {

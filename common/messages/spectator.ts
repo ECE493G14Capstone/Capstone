@@ -5,6 +5,7 @@ export interface ToClientEvents {
     ) => void;
     hideVotingSequence: () => void;
     sendVotingCountdown: (secondsLeft: number) => void;
+    votedTetroToSpawn: (type: number) => void;
 }
 
 export interface ToServerEvents {
