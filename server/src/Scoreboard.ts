@@ -1,10 +1,6 @@
 import { PlayerColor } from "./PlayerAttributes";
 import { Level } from "./Level";
-import {
-    broadcastUpdateScoreboard,
-    broadcastToSceneWaitingRoom,
-    broadcastToSceneGameOver,
-} from "../index";
+import { broadcast } from "./broadcast";
 
 import { ToServerEvents, ToClientEvents } from "common/messages/scoreboard";
 import { ColoredScore } from "common/shared";
@@ -20,13 +16,16 @@ export class Scoreboard {
     private _accumulatedScore: number;
     private _scoreMap: Array<ColoredScore>;
     private _finalScores: Array<ColoredScore>;
+    private broadcastUpdateScoreboard: broadcast["updateScoreboard"];
 
-    constructor() {
+    constructor(updateScoreboardEvent: broadcast["updateScoreboard"]) {
         this._orangeScore = 0;
         this._greenScore = 0;
         this._pinkScore = 0;
         this._blueScore = 0;
         this._accumulatedScore = 0;
+
+        this.broadcastUpdateScoreboard = updateScoreboardEvent;
 
         this._finalScores = [];
 
@@ -102,6 +101,10 @@ export class Scoreboard {
         return this._finalScores;
     }
 
+    get accumulatedScore(): number {
+        return this._accumulatedScore;
+    }
+
     /**
      * Reset all scores.
      */
@@ -111,6 +114,7 @@ export class Scoreboard {
         this._pinkScore = 0;
         this._blueScore = 0;
         this._accumulatedScore = 0;
+        this._finalScores = [];
     }
 
     /**
@@ -228,13 +232,14 @@ export class Scoreboard {
         });
 
         // Notify all connected users.
-        broadcastUpdateScoreboard(clonedData);
+        this.broadcastUpdateScoreboard(clonedData);
     }
 
     /**
-     * Display the game over screen with the fullscreen scoreboard UI.
+     * Get the final player scores.
+     * @returns The final scores of the players.
      */
-    public displaySceneGameOver() {
+    public getFinalScores() {
         this.updateScoreMap();
 
         this._finalScores = Object.assign([], this._scoreMap);
@@ -244,13 +249,6 @@ export class Scoreboard {
             points: this.currentTeamScore,
         });
 
-        // Show scoreboard to all connected users.
-        broadcastToSceneGameOver(this._finalScores);
-
-        // Return to starting sequence after 30 seconds.
-        setTimeout(() => {
-            broadcastToSceneWaitingRoom();
-            this.resetScores();
-        }, 30000);
+        return this._finalScores;
     }
 }

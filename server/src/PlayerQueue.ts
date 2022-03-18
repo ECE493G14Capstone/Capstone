@@ -3,22 +3,29 @@ import {
     ToServerEvents,
 } from "common/messages/sceneWaitingRoom";
 import { Socket } from "socket.io";
-import { broadcastRemainingPlayers, broadcastToSceneGameArena } from "..";
+import { broadcast } from "./broadcast";
 
 type SocketQueue = Socket<ToServerEvents, ToClientEvents>;
 
 export class PlayerQueue {
     private queue: Array<SocketQueue>;
+    private broadcastRemainingPlayers: broadcast["remainingPlayers"];
+    private broadcastToSceneGameArena: broadcast["toSceneGameArena"];
 
-    constructor() {
+    constructor(
+        remainingPlayersEvent: broadcast["remainingPlayers"],
+        toSceneGameArenaEvent: broadcast["toSceneGameArena"]
+    ) {
         this.queue = [];
+        this.broadcastRemainingPlayers = remainingPlayersEvent;
+        this.broadcastToSceneGameArena = toSceneGameArenaEvent;
     }
 
     public initSocketListeners(socket: SocketQueue) {
         socket.on("joinQueue", () => {
             this.addToQueue(socket);
 
-            broadcastRemainingPlayers(this.getRemainingPlayers());
+            this.broadcastRemainingPlayers(this.getRemainingPlayers());
 
             // 4 valid connections are found. Start the game.
             if (this.getRemainingPlayers() === 0) {
@@ -28,7 +35,7 @@ export class PlayerQueue {
                         playerIndex as 0 | 1 | 2 | 3
                     );
                 }
-                broadcastToSceneGameArena();
+                this.broadcastToSceneGameArena();
             }
         });
 
@@ -38,7 +45,7 @@ export class PlayerQueue {
 
         socket.on("disconnect", () => {
             this.removeFromQueue(socket);
-            broadcastRemainingPlayers(this.getRemainingPlayers());
+            this.broadcastRemainingPlayers(this.getRemainingPlayers());
         });
     }
 
@@ -55,6 +62,7 @@ export class PlayerQueue {
      * @param socket The socket to be removed from the queue.
      */
     public removeFromQueue(socket: SocketQueue) {
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         this.queue = this.queue.filter(function (value, index, arr) {
             return value != socket;
         });

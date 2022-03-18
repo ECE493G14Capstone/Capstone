@@ -29,6 +29,7 @@ interface SceneDataGameArena {
 export class SceneGameArena extends Phaser.Scene {
     FRAMERATE: number = 12;
 
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     keys!: any; // Phaser doesn't provide nice typing for keyboard.addKeys
     gameState!: GameState;
     socket!: SocketGame;

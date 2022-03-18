@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { BOARD_SIZE, ColoredScore } from "common/shared";
+import { BOARD_SIZE } from "common/shared";
 import { Socket } from "socket.io-client";
 
 import {
