@@ -214,6 +214,10 @@ export class Spectator {
             this._previouslyVotedOption = allOptions[selectedIndex];
         }
 
+        const tetrominoTypes = Object.keys(TetrominoType).filter((item) => {
+            return isNaN(Number(item));
+        });
+
         // The option "noAction" will perform no actions. As such, it is excluded from the following switch statement.
         switch (allOptions[selectedIndex]) {
             case "option1":
@@ -222,13 +226,14 @@ export class Spectator {
                 } else if (this._previouslyVotedOption == "option1") {
                     level.spectatorIncreaseFallRate();
                 } else if (this._previouslyVotedOption == "option2") {
-                    // let type = Object.keys(Object.keys(TetrominoType).indexOf(this._randTetros[0]));
+                    // BROADCAST HERE.
+                    const type = tetrominoTypes.indexOf(this._randTetros[0]);
                     console.log("Spawning in tetromino"); // FIXME: Need to spawn in a tetromino for the players for 20 seconds.
                 }
                 break;
             case "option2":
                 if (this._isFirstRoundVoting) {
-                    this.generateRandTetros(TetrominoType);
+                    this.generateRandTetros(tetrominoTypes);
                     this.generateSecondVotingSequence(
                         "tetrominoSelection",
                         level
@@ -249,11 +254,7 @@ export class Spectator {
         }
     }
 
-    private generateRandTetros(tetroTypes: typeof TetrominoType) {
-        let enumValues = Object.keys(tetroTypes).filter((item) => {
-            return isNaN(Number(item));
-        });
-
+    private generateRandTetros(enumValues: Array<string>) {
         this._randTetros = [];
 
         while (this._randTetros.length != 3) {
