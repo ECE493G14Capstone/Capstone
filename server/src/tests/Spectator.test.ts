@@ -7,6 +7,7 @@ describe("Testing 'Spectator'", () => {
 
     jest.useFakeTimers();
     jest.spyOn(global, "setTimeout");
+    jest.spyOn(global, "setInterval");
 
     beforeEach(() => {
         spectator = new Spectator(jest.fn(), jest.fn(), jest.fn());
@@ -22,9 +23,8 @@ describe("Testing 'Spectator'", () => {
         expect(spectator.countdownValue).toBe(10);
         spectator.generateFirstVotingSequence(level);
 
-        // Run the countdown to completion. Should expect it to go from 10 -> -1.
         jest.runAllTimers();
-        expect(spectator.countdownValue).toBe(-1);
+        expect(spectator.countdownValue).toBe(9);
 
         expect(setTimeout).toHaveBeenCalled();
 
@@ -37,15 +37,20 @@ describe("Testing 'Spectator'", () => {
         expect(spectator.countdownValue).toBe(10);
         spectator.generateSecondVotingSequence("", level);
 
-        // Run the countdown to completion. Should expect it to go from 10 -> -1.
         jest.runAllTimers();
-        expect(spectator.countdownValue).toBe(-1);
+        expect(spectator.countdownValue).toBe(9);
 
         expect(setTimeout).toHaveBeenCalled();
 
         // From the client's perspective, they still get a voting option for 10 seconds.
         // The server makes a decision in 12 seconds to give a small buffer between voting rounds.
         expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 12000);
+    });
+
+    test("Test Voting Loop", () => {
+        spectator.startVotingLoop(level);
+        expect(setInterval).toHaveBeenCalled();
+        expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 44000);
     });
 
     test("Test Ensure Voting Sequence is Reset When Starting a Voting Sequence", () => {
@@ -69,9 +74,12 @@ describe("Testing 'Spectator'", () => {
         );
 
         expect(spectator.isVoteRunning()).toBe("");
+        spectator.startVotingLoop(level);
         spectator.generateFirstVotingSequence(level);
+        expect(spectator.isVoteRunning()).toBe("initialDisplay");
         spectator.getResult("option1");
         spectator.makeDecision(level);
+        expect(spectator.isVoteRunning()).toBe("fallRate");
 
         // Second voting round should commence.
         expect(secondVotingSequence).toHaveBeenCalled();

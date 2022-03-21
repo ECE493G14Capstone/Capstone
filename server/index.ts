@@ -59,6 +59,7 @@ const toSceneWaitingRoom: broadcast["toSceneWaitingRoom"] = () => {
 
 const toSceneGameArena: broadcast["toSceneGameArena"] = () => {
     scene.setScene("SceneGameArena");
+    spectator.startVotingLoop(level);
     io.sockets.emit("toSceneGameArena");
 };
 
@@ -66,6 +67,7 @@ const toSceneGameOver: broadcast["toSceneGameOver"] = (
     msg: Array<ColoredScore>
 ) => {
     scene.setScene("SceneGameOver");
+    spectator.stopVotingLoop();
     io.sockets.emit("toSceneGameOver", msg);
 };
 

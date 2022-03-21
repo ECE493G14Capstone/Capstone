@@ -183,7 +183,7 @@ export class SceneGameArena extends Phaser.Scene {
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 this.renderedBoard[row][col]?.destroy();
-                if (this.gameState.board[row][col]) {
+                if (this.gameState.board[row][col] !== null) {
                     const x = (col + 0.5) * TILE_SIZE;
                     const y = (row + 0.5) * TILE_SIZE;
                     this.renderedBoard[row][col] = this.add.rectangle(
