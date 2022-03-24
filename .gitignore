@@ -4,3 +4,5 @@ yarn.lock
 .env
 node_modules
 .pnpm-debug.log
+test-results/
+playwright-report/

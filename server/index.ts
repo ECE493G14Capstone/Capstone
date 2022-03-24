@@ -28,6 +28,12 @@ app.use(function (_, res, next) {
 // host static frontend
 app.use("/", express.static(path.join(__dirname, "public")));
 
+app.get("/restart", (_, res) => {
+    startServer();
+    res.status(200);
+    res.end();
+});
+
 const server = http.createServer(app);
 
 // Take a port 3000 for running server.
@@ -36,11 +42,18 @@ const port = process.env.PORT || 80;
 // Server setup
 server.listen(port);
 
-const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
+let io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
     cors: {
         origin: "*",
     },
 });
+
+let playerCounter: 0 | 1 | 2 | 3;
+let scoreboard: Scoreboard;
+let queue: PlayerQueue;
+let spectator: Spectator;
+let scene: SceneTracker;
+let level: Level;
 
 // =========== Emit to all sockets ================
 const updateScoreboard: broadcast["updateScoreboard"] = (
@@ -90,15 +103,6 @@ const remainingPlayers: broadcast["remainingPlayers"] = (
 const fallRate: broadcast["fallRate"] = (fallRate: number) => {
     io.sockets.emit("updateFallRate", fallRate);
 };
-// ==============================================
-
-console.log(`Server started at port ${port}`);
-let playerCounter: 0 | 1 | 2 | 3 = 0; // FIXME: Remove this on final version.
-const scoreboard = new Scoreboard(updateScoreboard);
-const level = new Level(fallRate);
-const queue = new PlayerQueue(remainingPlayers, toSceneGameArena);
-const spectator = new Spectator(showVotingSequence, hideVotingSequence);
-const scene = new SceneTracker();
 
 /**
  * End the game.
@@ -112,25 +116,50 @@ function gameOver() {
         toSceneWaitingRoom();
     }, 30000);
 }
+// ==============================================
 
-io.on("connection", (socket) => {
-    scoreboard.initSocketListeners(socket, level);
-    spectator.initSocketListeners(socket);
-    queue.initSocketListeners(socket);
-    scene.initSocketListeners(socket, scoreboard.finalScores);
-    level.initSocketListeners(socket);
-
-    if (process.env.VITE_DISABLE_WAITING_ROOM) {
-        socket.emit("initPlayer", playerCounter);
-        playerCounter += 1;
-        playerCounter %= 4;
-    }
-
-    socket.on("playerMove", (...args) => {
-        socket.broadcast.emit("playerMove", ...args);
+function startServer() {
+    console.log("socket server started");
+    io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
+        cors: {
+            origin: "*",
+        },
     });
-    socket.on("playerPlace", (...args) => {
-        console.log("player ", args[0], " placed.");
-        socket.broadcast.emit("playerPlace", ...args);
+    io.removeAllListeners();
+
+    playerCounter = 0; // FIXME: Remove this on final version.
+    scoreboard = new Scoreboard(updateScoreboard);
+    level = new Level(fallRate);
+    queue = new PlayerQueue(remainingPlayers, toSceneGameArena);
+    spectator = new Spectator(showVotingSequence, hideVotingSequence);
+    scene = new SceneTracker();
+
+    io.on("connection", (socket) => {
+        scoreboard.initSocketListeners(socket, level);
+        spectator.initSocketListeners(socket);
+        queue.initSocketListeners(socket);
+        scene.initSocketListeners(socket, scoreboard.finalScores);
+        level.initSocketListeners(socket);
+
+        if (process.env.VITE_DISABLE_WAITING_ROOM) {
+            socket.emit("initPlayer", playerCounter);
+            playerCounter += 1;
+            playerCounter %= 4;
+        }
+
+        socket.on("playerMove", (...args) => {
+            socket.broadcast.emit("playerMove", ...args);
+        });
+        socket.on("playerPlace", (...args) => {
+            console.log("player ", args[0], " placed.");
+            socket.broadcast.emit("playerPlace", ...args);
+        });
+
+        socket.on("disconnect", () => {
+            socket.removeAllListeners();
+        });
     });
-});
+}
+
+console.log(`Server started at port ${port}`);
+startServer();
