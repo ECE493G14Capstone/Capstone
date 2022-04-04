@@ -27,6 +27,10 @@ type LineCheckTask = {
     range: Array<number>;
 };
 
+if (import.meta.env.VITE_DEBUG_ENABLE_FRAMEDRAWING) {
+    console.log("drawing board per frame is enabled");
+}
+
 export class GameState {
     socket: GameSocket;
 
@@ -361,6 +365,7 @@ export class GameState {
             this.currentTetromino.reportState()
         );
         this.placeTetromino(this.currentTetromino);
+        this.currentTetromino.dropSprites();
 
         if (this.tradeState === TradeState.Offered) {
             //clear the trade if this user was offering a trade

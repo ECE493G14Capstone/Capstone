@@ -138,7 +138,6 @@ export class SceneGameArena extends Phaser.Scene {
                 const currentOwner = this.gameState.currentTetromino.ownerId;
                 this.gameState.emitAndPlaceCurrentTetromino();
                 this.gameState.updateLineClearing(currentOwner);
-                this.drawPendingMonominoes();
             } else if (result != null) {
                 this.gameState.currentTetromino.draw(this);
             }
@@ -225,9 +224,24 @@ export class SceneGameArena extends Phaser.Scene {
         if (this.frameTimeElapsed > 1000 / this.FRAMERATE) {
             this.updateDrawPlayers();
             this.updateFromTradeState();
-            this.drawPendingMonominoes();
+            if (import.meta.env.VITE_DEBUG_ENABLE_FRAMEDRAWING) {
+                this.drawBoard();
+            } else {
+                this.drawPendingMonominoes();
+            }
             // start next frame
             this.frameTimeElapsed = 0;
+        }
+    }
+
+    private drawBoard() {
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                const block = this.gameState.board[row][col];
+                if (block) {
+                    block.draw(this);
+                }
+            }
         }
     }
 
